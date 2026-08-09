@@ -1,0 +1,7 @@
+interface:
+  display_name: "PKM Distill"
+  short_description: "Extract durable knowledge from raw notes"
+  default_prompt: "Use $pkm-distill to turn this capture into reusable knowledge."
+
+policy:
+  allow_implicit_invocation: false

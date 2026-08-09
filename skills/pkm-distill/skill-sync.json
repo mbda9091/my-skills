@@ -1,0 +1,9 @@
+{
+  "compatibility": [
+    "codex"
+  ],
+  "description": "Leaf skill for turning raw PKM captures into durable knowledge. Use only when explicitly invoked by $pkm-distill or selected by $pkm-operator. Extracts summaries, methods, judgment criteria, decisions, actions, verification items, and Resource notes from AI conversations or other raw notes.",
+  "name": "pkm-distill",
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-09T09:50:36Z"
+}
