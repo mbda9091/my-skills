@@ -1,0 +1,7 @@
+interface:
+  display_name: "PKM Operator"
+  short_description: "Route PKM workflows to leaf skills"
+  default_prompt: "Use $pkm-operator to process this PKM goal."
+
+policy:
+  allow_implicit_invocation: true

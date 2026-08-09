@@ -1,0 +1,9 @@
+{
+  "compatibility": [
+    "codex"
+  ],
+  "description": "Main entrypoint for the user's Obsidian/PKM workflow. Use when the user explicitly invokes $pkm-operator or asks Codex to capture, triage, distill, link, or review knowledge in the PKM vault according to the user's PARA and AI-conversation workflow. This skill routes the goal to explicit leaf skills and coordinates end-to-end validation.",
+  "name": "pkm-operator",
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-09T09:57:29Z"
+}
