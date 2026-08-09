@@ -1,0 +1,7 @@
+interface:
+  display_name: "PKM Triage"
+  short_description: "Route notes by PARA action distance"
+  default_prompt: "Use $pkm-triage to decide where this note belongs."
+
+policy:
+  allow_implicit_invocation: false

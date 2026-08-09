@@ -1,0 +1,9 @@
+{
+  "compatibility": [
+    "codex"
+  ],
+  "description": "Leaf skill for deciding where PKM material belongs by PARA action distance. Use only when explicitly invoked by $pkm-triage or selected by $pkm-operator. Classifies content into Daily, 00_inbox, 01 Projects, 02 Areas, 03 Resources, 04 Archive, or deletion candidates with rationale and next action.",
+  "name": "pkm-triage",
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-09T09:56:56Z"
+}
