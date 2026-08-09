@@ -1,0 +1,9 @@
+{
+  "compatibility": [
+    "codex"
+  ],
+  "description": "Leaf skill for connecting PKM notes after capture or distillation. Use only when explicitly invoked by $pkm-link or selected by $pkm-operator. Updates Daily notes, MOCs, backlinks, Related sections, Raw links, and project/resource references while preserving existing content and avoiding duplicate links.",
+  "name": "pkm-link",
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-09T09:52:54Z"
+}

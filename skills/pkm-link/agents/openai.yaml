@@ -1,0 +1,7 @@
+interface:
+  display_name: "PKM Link"
+  short_description: "Update backlinks, MOCs, and Daily links"
+  default_prompt: "Use $pkm-link to connect this note to the vault."
+
+policy:
+  allow_implicit_invocation: false
