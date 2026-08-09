@@ -1,0 +1,7 @@
+interface:
+  display_name: "PKM Review"
+  short_description: "Review inbox and stale PKM items"
+  default_prompt: "Use $pkm-review to review my PKM inbox."
+
+policy:
+  allow_implicit_invocation: false
