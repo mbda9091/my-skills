@@ -1,0 +1,9 @@
+{
+  "compatibility": [
+    "codex"
+  ],
+  "description": "Leaf skill for capturing raw inputs into the user's Obsidian/PKM vault. Use only when explicitly invoked by $pkm-capture or selected by $pkm-operator. Captures AI conversations, fleeting notes, source excerpts, and unprocessed material into the correct inbox or Daily location without overwriting existing notes.",
+  "name": "pkm-capture",
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-09T09:43:45Z"
+}

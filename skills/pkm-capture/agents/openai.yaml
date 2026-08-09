@@ -1,0 +1,7 @@
+interface:
+  display_name: "PKM Capture"
+  short_description: "Capture raw inputs into the vault"
+  default_prompt: "Use $pkm-capture to capture this input into my PKM vault."
+
+policy:
+  allow_implicit_invocation: false
