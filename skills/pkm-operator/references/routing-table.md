@@ -11,10 +11,6 @@ Use `$pkm-capture` when the user wants to:
 - capture a webpage excerpt or temporary note
 - put something into the vault without yet deciding final knowledge value
 
-## Ingress
-
-Use `$pkm-ingress` when an external system, bot, browser tool, CLI, another agent, or user asks to submit outside content into the vault without reading vault rules. This creates an External Drop only.
-
 ## Triage
 
 Use `$pkm-triage` when the user asks:
@@ -43,10 +39,6 @@ Use `$pkm-link` when the user asks:
 - connect this note to projects/resources/areas
 - add raw/source links
 
-## Ingest
-
-Use `$pkm-ingest` when the user asks to process, normalize, or convert an existing file under `00_inbox/External Drops/` into formal vault notes, tasks, links, or a rejection.
-
 ## Review
 
 Use `$pkm-review` when the user asks:
@@ -62,7 +54,7 @@ Use `$pkm-review` when the user asks:
 If a user asks for a complete flow, run leaf skills in workflow order:
 
 ```text
-ingress -> capture -> triage -> distill -> link -> ingest -> review
+capture -> triage -> distill -> link -> review
 ```
 
 Skip stages that are unnecessary. For example, an AI conversation capture with a clear target can use:

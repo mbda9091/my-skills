@@ -5,14 +5,6 @@ description: Main entrypoint for the user's Obsidian/PKM workflow. Use when the 
 
 # PKM Operator
 
-## Target vault
-
-`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
-
-Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
-
-Follow the target vault's `AGENTS.md` for internal vault operations. Keep each run bound to the same resolved directory.
-
 ## Role
 
 Act as the PKM workflow router, not as a monolithic writer. Understand the user's goal, select the smallest necessary workflow stage, explicitly load the matching leaf skill, and coordinate validation.
@@ -20,7 +12,7 @@ Act as the PKM workflow router, not as a monolithic writer. Understand the user'
 The vault workflow is:
 
 ```text
-ingress -> capture -> triage -> distill -> link -> ingest -> review
+capture -> triage -> distill -> link -> review
 ```
 
 ## Routing
@@ -35,7 +27,6 @@ Use these leaf skills:
 | Decide whether content belongs in Daily, Project, Area, Resource, Inbox, or Archive | `$pkm-triage` |
 | Extract reusable knowledge, decisions, actions, or verification items | `$pkm-distill` |
 | Add backlinks, Daily links, MOC entries, or related project/resource references | `$pkm-link` |
-| Process files under `00_inbox/External Drops/` into formal vault notes | `$pkm-ingest` |
 | Review inbox, stale projects, unprocessed AI conversations, or weakly linked notes | `$pkm-review` |
 
 After selecting a leaf, read that leaf skill's `SKILL.md` from the sibling skill directory, for example `../pkm-capture/SKILL.md`. Do not execute a leaf workflow from memory.
@@ -49,34 +40,23 @@ Use this as the first complete vertical slice:
 3. `$pkm-link`: Link the resource back to the raw conversation, append the output to the Daily note, and update `MOCs/AI 对话沉淀.md` when appropriate.
 4. Validate by reading the changed files and checking that raw context, distilled knowledge, and action links are all traceable.
 
-## PKM Ops Wrapper
+## PKM QuickAdd Wrapper
 
-For vault-local automation, prefer the vault-native wrapper:
+For vault `~/Documents/PKM_AI`, prefer the vault-local wrapper:
 
 ```bash
-(
-  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
-  cd -- "$PKM_VALUT_DIR" || exit
-  python3 scripts/pkm_ops.py create-ai-conversation --payload-json '{"title":"topic","date":"YYYY-MM-DD"}'
-  python3 scripts/pkm_ops.py create-resource --payload-json '{"title":"resource","source_type":"ai"}'
-  python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- note"}'
-)
+python3 scripts/pkm_quickadd.py capture-ai --payload /private/tmp/pkm-capture.json
+python3 scripts/pkm_quickadd.py create-resource --payload /private/tmp/pkm-resource.json
+python3 scripts/pkm_quickadd.py append-daily --payload /private/tmp/pkm-daily.json
 ```
 
-Run these commands in `$PKM_VALUT_DIR`, independently of the current workspace. The operator and leaf skills should generate structured payloads and call `scripts/pkm_ops.py`; use `--payload-json` for short payloads and `--payload -` or `--payload <path>` for longer content.
+Run these commands from the vault root. For QuickAdd actions, the wrapper fixes the vault name, choice ids, `quickadd:check` / `quickadd:run` order, and target-path detection. For `append-daily`, the wrapper edits local Markdown directly. The operator and leaf skills should generate a structured payload file and call the wrapper; do not put large `vars=...` JSON directly in the shell command.
 
-Primary actions:
+Configured wrapper actions:
 
-- `create-ai-conversation`
-- `create-resource`
-- `append-daily`
-- `append-moc-link`
-- `append-project-resource`
-- `add-task`
-- `create-external-drop`
-- `validate-drops`
-- `ingest-drop`
-- `validate-templates`
+- `PKM - Capture AI Conversation` (`b0f3c0d6-89a5-4d86-bb7b-9f8f2f61c101`)
+- `PKM - Create Resource` (`f50ab515-88cb-4878-9d0c-449278ef94b2`)
+- `append-daily` (local Markdown append; no QuickAdd choice)
 
 Payload for `capture-ai`:
 
@@ -123,11 +103,11 @@ Use `Tasks`, `Notes`, `Ideas`, or `Links` for common Daily sections. Entries und
 
 Markdown values may contain lists and multiline text. When preparing JSON by hand, encode newlines as JSON newlines (`\n`), not as literal backslash-n text.
 
-`scripts/pkm_quickadd.py` is a legacy adapter for explicit QuickAdd/manual Obsidian workflows. Do not use it as the default automation backend.
+Fallback to raw Obsidian QuickAdd CLI, the existing direct-write script, or direct Markdown workflow only when the wrapper is unavailable, the Obsidian CLI is unavailable, the QuickAdd choices are missing, or the user explicitly asks for direct file edits.
 
 ## Operating Rules
 
-- Before internal PKM vault operations, read `$PKM_VALUT_DIR/AGENTS.md`; use `references/workflow.md` only as skill-local routing context. For external ingress, load `$pkm-ingress` and preserve its boundary: do not read vault rules or perform internal triage.
+- Before PKM vault writes, read `~/Documents/PKM_AI/AGENTS.md`; use `references/workflow.md` only as skill-local routing context.
 - Ask for clarification only when routing is genuinely ambiguous and a wrong write would be costly.
 - Preserve user-authored content. Never overwrite notes unless explicitly requested.
 - For facts that may change over time, require verification before turning them into durable knowledge.
