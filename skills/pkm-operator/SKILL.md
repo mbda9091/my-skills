@@ -5,6 +5,14 @@ description: Main entrypoint for the user's Obsidian/PKM workflow. Use when the 
 
 # PKM Operator
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole filesystem target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace or a fixed home-directory path.
+
+Resolve note paths, templates, and the vault's `AGENTS.md` from this directory. Keep vault-relative paths inside the resolved root, including through symlinks. Follow `$PKM_VALUT_DIR/AGENTS.md` for vault operations. Skill-local `references/` and bundled `scripts/` resolve from this skill's installed directory, independently of the target vault and current working directory.
+
+The QuickAdd wrapper is `$PKM_VALUT_DIR/scripts/pkm_quickadd.py`. Run it with `--vault-root "$PKM_VALUT_DIR"` in the configured vault directory. For Obsidian-backed actions, verify that the wrapper's `--vault` identifier points to the same vault before writing; pass the matching identifier when its default does not match.
+
 ## Role
 
 Act as the PKM workflow router, not as a monolithic writer. Understand the user's goal, select the smallest necessary workflow stage, explicitly load the matching leaf skill, and coordinate validation.
@@ -42,15 +50,19 @@ Use this as the first complete vertical slice:
 
 ## PKM QuickAdd Wrapper
 
-For vault `~/Documents/PKM_AI`, prefer the vault-local wrapper:
+For the vault selected by `PKM_VALUT_DIR`, prefer the vault-local QuickAdd wrapper:
 
 ```bash
-python3 scripts/pkm_quickadd.py capture-ai --payload /private/tmp/pkm-capture.json
-python3 scripts/pkm_quickadd.py create-resource --payload /private/tmp/pkm-resource.json
-python3 scripts/pkm_quickadd.py append-daily --payload /private/tmp/pkm-daily.json
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_quickadd.py capture-ai --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-capture.json || exit
+  python3 scripts/pkm_quickadd.py create-resource --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-resource.json || exit
+  python3 scripts/pkm_quickadd.py append-daily --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-daily.json
+)
 ```
 
-Run these commands from the vault root. For QuickAdd actions, the wrapper fixes the vault name, choice ids, `quickadd:check` / `quickadd:run` order, and target-path detection. For `append-daily`, the wrapper edits local Markdown directly. The operator and leaf skills should generate a structured payload file and call the wrapper; do not put large `vars=...` JSON directly in the shell command.
+Run these commands in `$PKM_VALUT_DIR`. For QuickAdd actions, pass the target root explicitly and keep the configured choice ids, `quickadd:check` / `quickadd:run` order, and target-path detection. For `append-daily`, the wrapper edits local Markdown directly. The operator and leaf skills should generate a structured payload file and call the wrapper; do not put large `vars=...` JSON directly in the shell command.
 
 Configured wrapper actions:
 
@@ -107,7 +119,7 @@ Fallback to raw Obsidian QuickAdd CLI, the existing direct-write script, or dire
 
 ## Operating Rules
 
-- Before PKM vault writes, read `~/Documents/PKM_AI/AGENTS.md`; use `references/workflow.md` only as skill-local routing context.
+- Before PKM vault writes, read `$PKM_VALUT_DIR/AGENTS.md`; use `references/workflow.md` only as skill-local routing context.
 - Ask for clarification only when routing is genuinely ambiguous and a wrong write would be costly.
 - Preserve user-authored content. Never overwrite notes unless explicitly requested.
 - For facts that may change over time, require verification before turning them into durable knowledge.

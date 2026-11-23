@@ -2,6 +2,8 @@
 
 The vault uses PARA plus an AI-conversation intake workflow.
 
+`PKM_VALUT_DIR` selects the target vault and must name an existing absolute directory. All vault paths below are relative to its resolved root. Internal operations follow `$PKM_VALUT_DIR/AGENTS.md`. QuickAdd uses the wrapper in that vault with an explicit `--vault-root "$PKM_VALUT_DIR"`; its Obsidian vault identifier must resolve to the same library.
+
 Core stages:
 
 ```text

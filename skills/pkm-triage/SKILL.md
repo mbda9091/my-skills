@@ -5,6 +5,12 @@ description: Leaf skill for deciding where PKM material belongs by PARA action d
 
 # PKM Triage
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole filesystem target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace or a fixed home-directory path.
+
+Resolve note paths, templates, and the vault's `AGENTS.md` from this directory. Keep vault-relative paths inside the resolved root, including through symlinks. Follow `$PKM_VALUT_DIR/AGENTS.md` for vault operations. Skill-local `references/` and bundled `scripts/` resolve from this skill's installed directory, independently of the target vault and current working directory.
+
 ## Role
 
 Decide where a note or idea belongs. Produce a destination, rationale, and next action. Do not rewrite the content unless the user asks.

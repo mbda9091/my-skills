@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 
@@ -32,15 +33,25 @@ def append_under_heading(text: str, heading: str, entry: str) -> tuple[str, bool
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--vault", default=".")
+    parser.add_argument("--vault", help="Optional confirmation of PKM_VALUT_DIR; cannot select a different vault.")
     parser.add_argument("--file", required=True, help="Markdown file path relative to vault.")
     parser.add_argument("--heading", required=True, help="Heading text without leading ##.")
     parser.add_argument("--entry", required=True)
     args = parser.parse_args()
 
-    vault = Path(args.vault).expanduser().resolve()
+    configured_vault = os.environ.get("PKM_VALUT_DIR")
+    if not configured_vault or not configured_vault.strip():
+        raise SystemExit("PKM_VALUT_DIR must be set to the absolute target vault directory.")
+    vault = Path(configured_vault)
+    if not vault.is_absolute():
+        raise SystemExit("PKM_VALUT_DIR must be an absolute path.")
+    if not vault.is_dir():
+        raise SystemExit(f"PKM_VALUT_DIR must name an existing directory: {vault}")
+    vault = vault.resolve()
+    if args.vault is not None and Path(args.vault).expanduser().resolve() != vault:
+        raise SystemExit("--vault must match PKM_VALUT_DIR; it cannot select another vault.")
     target = (vault / args.file).resolve()
-    if not str(target).startswith(str(vault)):
+    if not target.is_relative_to(vault):
         raise SystemExit("Target file must be inside the vault.")
     if target.exists():
         text = target.read_text(encoding="utf-8")

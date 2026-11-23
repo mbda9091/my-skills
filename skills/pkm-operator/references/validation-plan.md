@@ -2,6 +2,15 @@
 
 Validate leaf skills independently first, then validate combined flows.
 
+## Target vault validation
+
+- Invoke each skill directly as well as through the operator; all target paths must resolve from `PKM_VALUT_DIR`.
+- Unset, empty, relative, missing, and non-directory values stop before vault operations; the workspace never becomes the fallback vault.
+- From an unrelated working directory, use a target path containing spaces. Verify note paths, templates, vault rules, and QuickAdd calls use that target.
+- QuickAdd examples pass the selected root through `--vault-root`; any Obsidian vault identifier must match it. Preserve the configured choices and `quickadd:check` / `quickadd:run` order.
+- The capture, link, and review helpers require the variable; `--vault` can only confirm it. Check parent-path and symlink escapes as well as ordinary operations.
+- Run `python3 -m unittest discover -s tests -p 'test_*.py'` in this repository. Documented command tests use a stub wrapper; real Obsidian QuickAdd actions need separate integration validation.
+
 ## Leaf Validation
 
 `pkm-capture`:

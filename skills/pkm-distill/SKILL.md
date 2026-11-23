@@ -5,6 +5,14 @@ description: Leaf skill for turning raw PKM captures into durable knowledge. Use
 
 # PKM Distill
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole filesystem target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace or a fixed home-directory path.
+
+Resolve note paths, templates, and the vault's `AGENTS.md` from this directory. Keep vault-relative paths inside the resolved root, including through symlinks. Follow `$PKM_VALUT_DIR/AGENTS.md` for vault operations. Skill-local `references/` and bundled `scripts/` resolve from this skill's installed directory, independently of the target vault and current working directory.
+
+The QuickAdd wrapper is `$PKM_VALUT_DIR/scripts/pkm_quickadd.py`. Run it with `--vault-root "$PKM_VALUT_DIR"` in the configured vault directory. For Obsidian-backed actions, verify that the wrapper's `--vault` identifier points to the same vault before writing; pass the matching identifier when its default does not match.
+
 ## Role
 
 Convert raw material into reusable knowledge. Preserve traceability to the raw source, but do not dump transcripts into Resource notes.
@@ -26,7 +34,7 @@ Convert raw material into reusable knowledge. Preserve traceability to the raw s
    - Actions
    - To Verify
    - Related Project/Area/Raw links
-4. If writing a Resource note in vault `~/Documents/PKM_AI`, prefer the wrapper action `create-resource`.
+4. If writing a Resource note in the vault selected by `PKM_VALUT_DIR`, prefer the wrapper action `create-resource`.
 5. If writing directly, use `03 Resources/` unless triage indicates Project or Area.
 6. Route link updates to `$pkm-link`.
 
@@ -53,10 +61,14 @@ Generate Markdown-ready values and write them to a payload JSON file:
 
 Resolve `related_area` and `related_project` from the actual note ownership. Use an empty string when either relation does not apply; never default new resources to a completed project.
 
-Then call the wrapper from the vault root:
+Then call the wrapper in the configured target vault:
 
 ```bash
-python3 scripts/pkm_quickadd.py create-resource --payload /private/tmp/pkm-resource.json
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_quickadd.py create-resource --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-resource.json
+)
 ```
 
 The wrapper uses choice id `f50ab515-88cb-4878-9d0c-449278ef94b2`, runs `quickadd:check` before `quickadd:run`, and returns the created target path. If check reports missing fields, provide explicit empty strings for intentionally blank optional values. Do not copy the full Resource template into the skill when the wrapper path is available.

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -107,7 +108,7 @@ def body(kind: str, title: str, date_str: str, content: str, prompt: str) -> str
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--vault", default=".")
+    parser.add_argument("--vault", help="Optional confirmation of PKM_VALUT_DIR; cannot select a different vault.")
     parser.add_argument("--kind", choices=sorted(KIND_DIR), required=True)
     parser.add_argument("--title", required=True)
     parser.add_argument("--content")
@@ -117,9 +118,17 @@ def main() -> int:
     parser.add_argument("--unique", action="store_true")
     args = parser.parse_args()
 
-    vault = Path(args.vault).expanduser().resolve()
-    if not vault.exists():
-        raise SystemExit(f"Vault does not exist: {vault}")
+    configured_vault = os.environ.get("PKM_VALUT_DIR")
+    if not configured_vault or not configured_vault.strip():
+        raise SystemExit("PKM_VALUT_DIR must be set to the absolute target vault directory.")
+    vault = Path(configured_vault)
+    if not vault.is_absolute():
+        raise SystemExit("PKM_VALUT_DIR must be an absolute path.")
+    if not vault.is_dir():
+        raise SystemExit(f"PKM_VALUT_DIR must name an existing directory: {vault}")
+    vault = vault.resolve()
+    if args.vault is not None and Path(args.vault).expanduser().resolve() != vault:
+        raise SystemExit("--vault must match PKM_VALUT_DIR; it cannot select another vault.")
 
     now = datetime.now()
     stamp = now.strftime("%Y-%m-%d %H:%M")
@@ -129,8 +138,9 @@ def main() -> int:
     if args.kind == "ai_conversation":
         filename = f"{date_str}-{filename}"
 
-    target_dir = vault / KIND_DIR[args.kind]
-    target_dir.mkdir(parents=True, exist_ok=True)
+    target_dir = (vault / KIND_DIR[args.kind]).resolve()
+    if not target_dir.is_relative_to(vault):
+        raise SystemExit("Capture directory must be inside PKM_VALUT_DIR.")
     target = target_dir / f"{filename}.md"
     if target.exists():
         if args.unique:
@@ -138,8 +148,12 @@ def main() -> int:
         else:
             raise SystemExit(f"Refusing to overwrite existing note: {target}")
 
+    if not target.resolve().is_relative_to(vault):
+        raise SystemExit("Capture file must be inside PKM_VALUT_DIR.")
+
     content = read_content(args)
     note = frontmatter(args.kind, stamp) + "\n\n" + body(args.kind, title, date_str, content, args.prompt)
+    target_dir.mkdir(parents=True, exist_ok=True)
     target.write_text(note.rstrip() + "\n", encoding="utf-8")
     print(json.dumps({"created": str(target), "relative_path": str(target.relative_to(vault))}, ensure_ascii=False))
     return 0
