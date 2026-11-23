@@ -2,6 +2,16 @@
 
 Validate leaf skills independently first, then validate combined flows.
 
+## Target Vault Validation
+
+- Test every leaf directly as well as through the operator: `PKM_VALUT_DIR` must select the same target.
+- Unset, empty, relative, missing, and non-directory values stop before vault reads or writes.
+- From an unrelated working directory, use a target path containing spaces. Reads, writes, templates, and vault-local scripts must stay anchored to that target.
+- Resolve vault-relative paths inside the target; reject parent-path and symlink escapes. Skill-local references and helpers still resolve from the installed skill.
+- Internal operations read the target vault's `AGENTS.md`; `pkm-ingress` must not read it or accept a target-vault override in its payload.
+- The bundled capture, link, and review helpers require the environment variable. `--vault` can only confirm the same resolved directory.
+- In this repository, run `python3 -m unittest discover -s tests -p 'test_*.py'` for helper behavior and documented command examples. Example tests use stub vault wrappers; separately verify the real target vault's wrapper interfaces before production writes.
+
 ## Leaf Validation
 
 `pkm-capture`:

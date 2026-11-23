@@ -5,6 +5,14 @@ description: Leaf skill for reviewing PKM inboxes, unprocessed AI conversations,
 
 # PKM Review
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
+
+Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
+
+Follow the target vault's `AGENTS.md` for internal vault operations. Keep each run bound to the same resolved directory.
+
 ## Role
 
 Review the vault and recommend next actions. Default to reporting, not editing.

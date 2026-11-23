@@ -5,6 +5,14 @@ description: Controlled external entry point for the user's PKM vault. Use when 
 
 # PKM Ingress
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
+
+Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
+
+The environment is caller configuration, not an External Drop payload field. This skill still does not read the target vault's `AGENTS.md` or perform internal triage.
+
 ## Role
 
 Accept external content through the smallest contract and create an External Drop. Do not summarize, triage, classify, link, create Resources, add Tasks, or read the vault `AGENTS.md`.
@@ -39,10 +47,14 @@ Unknown fields are invalid. External callers must not pass PARA placement, Dashb
 ## Workflow
 
 1. Build the smallest payload from the external request.
-2. Run from the vault root:
+2. Run in the configured target vault:
 
 ```bash
-python3 scripts/pkm_ops.py create-external-drop --payload-json '{"source_app":"cli","content":"raw text","intent_hint":"unknown"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_ops.py create-external-drop --payload-json '{"source_app":"cli","content":"raw text","intent_hint":"unknown"}'
+)
 ```
 
 3. Read the returned `target_path` if validation is needed.

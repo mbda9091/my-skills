@@ -5,6 +5,14 @@ description: Leaf skill for capturing raw inputs into the user's Obsidian/PKM va
 
 # PKM Capture
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
+
+Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
+
+Follow the target vault's `AGENTS.md` for internal vault operations. Keep each run bound to the same resolved directory.
+
 ## Role
 
 Capture raw material with enough context to process later. Do not over-distill. Do not decide final PARA placement unless the user explicitly asks.
@@ -36,10 +44,14 @@ Use the vault-native script `scripts/pkm_ops.py create-ai-conversation`. Generat
 }
 ```
 
-Then call the wrapper from the vault root:
+Then call the wrapper in the configured target vault:
 
 ```bash
-python3 scripts/pkm_ops.py create-ai-conversation --payload-json '{"title":"topic","date":"YYYY-MM-DD","context":"...","prompt":"...","raw_answer":"..."}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_ops.py create-ai-conversation --payload-json '{"title":"topic","date":"YYYY-MM-DD","context":"...","prompt":"...","raw_answer":"..."}'
+)
 ```
 
 A captured conversation should include:
@@ -68,10 +80,14 @@ Use `scripts/pkm_ops.py append-daily` for short logs, ideas, links, and tasks. G
 }
 ```
 
-Then call the wrapper from the vault root:
+Then call the wrapper in the configured target vault:
 
 ```bash
-python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- Short daily note."}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- Short daily note."}'
+)
 ```
 
 Use these section conventions:

@@ -2,6 +2,8 @@
 
 The vault uses PARA plus an AI-conversation intake workflow.
 
+`PKM_VALUT_DIR` selects the target vault. It must be an existing absolute directory; all directories below are relative to its resolved path. The skill repository and the current workspace do not select the vault. Internal operations follow `$PKM_VALUT_DIR/AGENTS.md`; external ingress does not read that file.
+
 Core stages:
 
 ```text

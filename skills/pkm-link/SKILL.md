@@ -5,6 +5,14 @@ description: Leaf skill for connecting PKM notes after capture or distillation. 
 
 # PKM Link
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
+
+Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
+
+Follow the target vault's `AGENTS.md` for internal vault operations. Keep each run bound to the same resolved directory.
+
 ## Role
 
 Connect notes so work remains traceable. Add the smallest useful set of links; do not reorganize content beyond the requested connection.
@@ -28,7 +36,11 @@ Connect notes so work remains traceable. Add the smallest useful set of links; d
 ## Daily Script
 
 ```bash
-python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Links","content":"- [[03 Resources/example]]"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Links","content":"- [[03 Resources/example]]"}'
+)
 ```
 
 Payload:
@@ -48,6 +60,10 @@ Use `Links` for references, `Tasks` for dated actions, `Notes` for short logs, a
 ## MOC and Project Scripts
 
 ```bash
-python3 scripts/pkm_ops.py append-moc-link --payload-json '{"link":"[[03 Resources/example]]"}'
-python3 scripts/pkm_ops.py append-project-resource --payload-json '{"project":"01 Projects/example.md","resource":"[[03 Resources/example]]"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_ops.py append-moc-link --payload-json '{"link":"[[03 Resources/example]]"}'
+  python3 scripts/pkm_ops.py append-project-resource --payload-json '{"project":"01 Projects/example.md","resource":"[[03 Resources/example]]"}'
+)
 ```

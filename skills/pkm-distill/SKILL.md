@@ -5,6 +5,14 @@ description: Leaf skill for turning raw PKM captures into durable knowledge. Use
 
 # PKM Distill
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
+
+Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
+
+Follow the target vault's `AGENTS.md` for internal vault operations. Keep each run bound to the same resolved directory.
+
 ## Role
 
 Convert raw material into reusable knowledge. Preserve traceability to the raw source, but do not dump transcripts into Resource notes.
@@ -53,10 +61,14 @@ Generate Markdown-ready values and write them to a payload JSON file:
 
 Resolve `related_area` and `related_project` from the actual note ownership. Use an empty string when either relation does not apply; never default new resources to a completed project.
 
-Then call the wrapper from the vault root:
+Then call the wrapper in the configured target vault:
 
 ```bash
-python3 scripts/pkm_ops.py create-resource --payload-json '{"title":"durable resource title","source_type":"ai","summary":"- ...","key_points":"- ...","raw_link":"[[00_inbox/AI Conversations/YYYY-MM-DD-title]]"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_ops.py create-resource --payload-json '{"title":"durable resource title","source_type":"ai","summary":"- ...","key_points":"- ...","raw_link":"[[00_inbox/AI Conversations/YYYY-MM-DD-title]]"}'
+)
 ```
 
 Use `scripts/pkm_quickadd.py` only as an explicit legacy/manual fallback when the user asks for QuickAdd behavior.

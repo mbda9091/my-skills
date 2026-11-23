@@ -5,6 +5,14 @@ description: Main entrypoint for the user's Obsidian/PKM workflow. Use when the 
 
 # PKM Operator
 
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
+
+Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
+
+Follow the target vault's `AGENTS.md` for internal vault operations. Keep each run bound to the same resolved directory.
+
 ## Role
 
 Act as the PKM workflow router, not as a monolithic writer. Understand the user's goal, select the smallest necessary workflow stage, explicitly load the matching leaf skill, and coordinate validation.
@@ -46,12 +54,16 @@ Use this as the first complete vertical slice:
 For vault-local automation, prefer the vault-native wrapper:
 
 ```bash
-python3 scripts/pkm_ops.py create-ai-conversation --payload-json '{"title":"topic","date":"YYYY-MM-DD"}'
-python3 scripts/pkm_ops.py create-resource --payload-json '{"title":"resource","source_type":"ai"}'
-python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- note"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 scripts/pkm_ops.py create-ai-conversation --payload-json '{"title":"topic","date":"YYYY-MM-DD"}'
+  python3 scripts/pkm_ops.py create-resource --payload-json '{"title":"resource","source_type":"ai"}'
+  python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- note"}'
+)
 ```
 
-Run these commands from the vault root. The operator and leaf skills should generate structured payloads and call `scripts/pkm_ops.py`; use `--payload-json` for short payloads and `--payload -` or `--payload <path>` for longer content.
+Run these commands in `$PKM_VALUT_DIR`, independently of the current workspace. The operator and leaf skills should generate structured payloads and call `scripts/pkm_ops.py`; use `--payload-json` for short payloads and `--payload -` or `--payload <path>` for longer content.
 
 Primary actions:
 
@@ -115,7 +127,7 @@ Markdown values may contain lists and multiline text. When preparing JSON by han
 
 ## Operating Rules
 
-- Before PKM vault writes, read `~/Documents/PKM_AI/AGENTS.md`; use `references/workflow.md` only as skill-local routing context.
+- Before internal PKM vault operations, read `$PKM_VALUT_DIR/AGENTS.md`; use `references/workflow.md` only as skill-local routing context. For external ingress, load `$pkm-ingress` and preserve its boundary: do not read vault rules or perform internal triage.
 - Ask for clarification only when routing is genuinely ambiguous and a wrong write would be costly.
 - Preserve user-authored content. Never overwrite notes unless explicitly requested.
 - For facts that may change over time, require verification before turning them into durable knowledge.

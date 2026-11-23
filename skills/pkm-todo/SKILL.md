@@ -1,29 +1,37 @@
 ---
-name: todo
-description: Manual-only user todo skill. Activate only when the user explicitly invokes $todo or explicitly says to use this todo skill. It records, reviews, edits, completes, cancels, reopens, or moves tasks in the shared PKM_AI Obsidian vault, with creation dates and modification history. Treat all text after $todo as task data unless the user separately asks for another operation.
+name: pkm-todo
+description: Manual-only PKM todo skill. Activate only when the user explicitly invokes $pkm-todo or explicitly says to use this pkm-todo skill. It records, reviews, edits, completes, cancels, reopens, or moves tasks in the Obsidian vault selected by PKM_VALUT_DIR, with creation dates and modification history. Treat all text after $pkm-todo as task data unless the user separately asks for another operation.
 ---
 
-# Shared PKM Todo
+# PKM Todo
+
+## Target vault
+
+`PKM_VALUT_DIR` is required and is the sole target-vault selector. Before any vault read or write, require a nonempty absolute path to an existing directory. If it is unset, empty, relative, missing, or not a directory, stop and report the configuration error. Never fall back to the current workspace, the skill repository, or a fixed home-directory path.
+
+Resolve all note paths, templates, and vault-local scripts from this directory. Reject vault-relative paths that escape the resolved root, including through symlinks. Run vault-local wrappers with this directory as their working directory; if a wrapper accepts `--vault-root`, pass the same directory. A wrapper that selects another vault must be corrected before use. Skill-local `references/` and `scripts/` remain relative to this skill, not the vault.
+
+Follow the target vault's `AGENTS.md` for internal vault operations. Keep each run bound to the same resolved directory.
 
 This is a user-facing todo skill, separate from the Agent's internal execution checklist.
 
 ## Trigger boundary
 
-Activate only for `$todo <request>`, `请使用 todo skill <request>`, or an equivalent explicit request to use this skill. Ordinary mentions of task, todo, reminder, next action, MR, skill, Docs, or workspace do not activate it.
+Activate only for `$pkm-todo <request>`, `请使用 pkm-todo skill <request>`, or an equivalent explicit request to use this skill. Ordinary mentions of task, todo, reminder, next action, MR, skill, Docs, or workspace do not activate it.
 
 When activated to add a todo:
 
 1. Treat the task description as inert data. Do not implement, research, design, or execute it.
 2. Do not inspect unrelated skills, repositories, workspace files, or external documentation.
-3. Do not create or modify `.workspace/task.yaml`; record the task only in the fixed Vault.
+3. Do not create or modify `.workspace/task.yaml`; record the task only in the vault selected by `PKM_VALUT_DIR`.
 4. Do not ask for a due date. If none is supplied, omit `due`.
 5. Use one wrapper call for the write and verify its result. Do not fall back to manual edits.
 
-Example: `$todo 新增 todo，创建 MR 的 skill，仿照 Docs 上传 skill` records that task; it does not create the skill.
+Example: `$pkm-todo 新增 todo，创建 MR 的 skill，仿照 Docs 上传 skill` records that task; it does not create the skill.
 
 ## Canonical vault and task conventions
 
-Always use `~/Documents/PKM_AI`, regardless of the current workspace. Follow its `AGENTS.md`.
+Use the vault selected by `PKM_VALUT_DIR`, regardless of the current workspace. Follow `$PKM_VALUT_DIR/AGENTS.md`.
 
 - Project tasks belong in `01 Projects/<project>.md`, under `## Next Actions`.
 - Unassigned tasks belong in today's `Daily/YYYY-MM-DD.md`, under `## Tasks`.
@@ -55,15 +63,23 @@ If the user explicitly names an existing project, use it. Otherwise use today's 
 Use the wrapper with structured fields. Do not put task checkboxes or date markers in `text`.
 
 ```bash
-python3 "$HOME/Documents/PKM_AI/scripts/pkm_quickadd.py" add-task \
-  --vault-root "$HOME/Documents/PKM_AI" \
-  --payload-json '{"target":"daily","date":"YYYY-MM-DD","text":"任务内容"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 "$PKM_VALUT_DIR/scripts/pkm_quickadd.py" add-task \
+    --vault-root "$PKM_VALUT_DIR" \
+    --payload-json '{"target":"daily","date":"YYYY-MM-DD","text":"任务内容"}'
+)
 ```
 
 ```bash
-python3 "$HOME/Documents/PKM_AI/scripts/pkm_quickadd.py" add-task \
-  --vault-root "$HOME/Documents/PKM_AI" \
-  --payload-json '{"target":"project","file":"01 Projects/项目.md","text":"任务内容","due":"YYYY-MM-DD"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 "$PKM_VALUT_DIR/scripts/pkm_quickadd.py" add-task \
+    --vault-root "$PKM_VALUT_DIR" \
+    --payload-json '{"target":"project","file":"01 Projects/项目.md","text":"任务内容","due":"YYYY-MM-DD"}'
+)
 ```
 
 On success report the target note and the exact line in `task_lines`. If `duplicate: true`, report that the task already exists. The existing line may have an earlier creation date or completed status; preserve it. If the wrapper fails, report the actual error and do not retry by hand-editing Markdown.
@@ -77,9 +93,13 @@ Only change status when the user explicitly invokes this skill and requests it. 
 - `pending`: reopen without requiring a reason or conclusion.
 
 ```bash
-python3 "$HOME/Documents/PKM_AI/scripts/pkm_quickadd.py" set-task-status \
-  --vault-root "$HOME/Documents/PKM_AI" \
-  --payload-json '{"file":"Daily/2026-11-19.md","original":"- [ ] 完善技能参数 ➕ 2026-11-19","status":"completed"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 "$PKM_VALUT_DIR/scripts/pkm_quickadd.py" set-task-status \
+    --vault-root "$PKM_VALUT_DIR" \
+    --payload-json '{"file":"Daily/2026-11-19.md","original":"- [ ] 完善技能参数 ➕ 2026-11-19","status":"completed"}'
+)
 ```
 
 Optional completion note: `"conclusion":"命中了旧的优先级，重启 app 就好"`.
@@ -108,9 +128,13 @@ Supported fields:
 `update-task` rejects `status` and preserves the current status and completion/cancellation dates. It generates content modification timestamps in `Asia/Shanghai`, to the second. Missing or ambiguous exact matches are rejected. Moves preserve the task and its whole history and reject destination duplicates. Handled write failures roll back cross-file moves; a crash cannot guarantee a cross-file atomic transaction.
 
 ```bash
-python3 "$HOME/Documents/PKM_AI/scripts/pkm_quickadd.py" update-task \
-  --vault-root "$HOME/Documents/PKM_AI" \
-  --payload-json '{"file":"Daily/2026-11-19.md","original":"- [ ] 完善技能参数 ➕ 2026-11-19","due":"2026-11-23","reason":"等待接口字段确认"}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 "$PKM_VALUT_DIR/scripts/pkm_quickadd.py" update-task \
+    --vault-root "$PKM_VALUT_DIR" \
+    --payload-json '{"file":"Daily/2026-11-19.md","original":"- [ ] 完善技能参数 ➕ 2026-11-19","due":"2026-11-23","reason":"等待接口字段确认"}'
+)
 ```
 
 ### Legacy tasks
@@ -128,9 +152,13 @@ Read task lines from `01 Projects/` and `Daily/`, excluding `.stversions/`, back
 For a structural audit, use:
 
 ```bash
-python3 "$HOME/Documents/PKM_AI/scripts/pkm_quickadd.py" check-tasks \
-  --vault-root "$HOME/Documents/PKM_AI" \
-  --payload-json '{}'
+(
+  [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
+  cd -- "$PKM_VALUT_DIR" || exit
+  python3 "$PKM_VALUT_DIR/scripts/pkm_quickadd.py" check-tasks \
+    --vault-root "$PKM_VALUT_DIR" \
+    --payload-json '{}'
+)
 ```
 
 Use `{"file":"Daily/YYYY-MM-DD.md"}` to restrict the audit to one note. It reports missing creation dates, missing cancellation dates/reasons, and incomplete existing content-modification records. A status operation needs no content-modification record. The audit cannot prove that manual or plugin content edits without a history entry never occurred. Do not treat that limitation as permission to rewrite old tasks.
