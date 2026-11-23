@@ -1,0 +1,4 @@
+/.security/.venv/
+/.security/bin/
+/.security/__pycache__/
+/.security/install-manifest.json

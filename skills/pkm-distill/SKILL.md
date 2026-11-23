@@ -46,9 +46,12 @@ Generate Markdown-ready values and write them to a payload JSON file:
   "key_points": "- Reusable point.",
   "to_verify": "- Unstable claim to verify, or leave blank.",
   "raw_link": "[[00_inbox/AI Conversations/YYYY-MM-DD-title]]",
-  "related_project": "[[01 Projects/PKM工作流搭建]]"
+  "related_area": "[[02 Areas/related area]]",
+  "related_project": "[[01 Projects/related project]]"
 }
 ```
+
+Resolve `related_area` and `related_project` from the actual note ownership. Use an empty string when either relation does not apply; never default new resources to a completed project.
 
 Then call the wrapper from the vault root:
 
