@@ -1,0 +1,6 @@
+interface:
+  display_name: "Setup Python Environment"
+  short_description: "Configure Python 3.14 with uv and development checks"
+
+policy:
+  allow_implicit_invocation: false
