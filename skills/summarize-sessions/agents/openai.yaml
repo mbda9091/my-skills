@@ -1,0 +1,4 @@
+interface:
+  display_name: "会话分类与总结"
+  short_description: "通过 session-scan 读取会话，按闲聊、咨询调研和任务执行生成具体可回查的记录"
+  default_prompt: "使用 $summarize-sessions 总结指定会话，按事项分类并保留结果、当前状态和来源。"
