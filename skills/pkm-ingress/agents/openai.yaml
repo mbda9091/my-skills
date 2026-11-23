@@ -1,0 +1,4 @@
+interface:
+  display_name: "PKM Ingress"
+  short_description: "Capture external content as External Drops"
+  default_prompt: "Use $pkm-ingress to submit external content into the PKM vault as an External Drop."

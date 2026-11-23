@@ -16,15 +16,15 @@ Capture raw material with enough context to process later. Do not over-distill. 
    - fleeting note or unclear material: `00_inbox/`
    - same-day action or quick log: `Daily/YYYY-MM-DD.md`
 2. Preserve the user's request, source context, and raw answer/content.
-3. For AI conversation captures in vault `~/Documents/PKM_AI`, prefer the wrapper action `capture-ai`.
-4. For same-day Daily captures, prefer the wrapper action `append-daily`.
-5. Use raw Obsidian QuickAdd CLI or direct Markdown edits only when the wrapper, Obsidian CLI, or QuickAdd choice is unavailable.
+3. For AI conversation captures, prefer `scripts/pkm_ops.py create-ai-conversation`.
+4. For same-day Daily captures, prefer `scripts/pkm_ops.py append-daily`.
+5. Use QuickAdd only as an explicit legacy/manual fallback.
 6. If writing to Daily, preserve existing sections and append under the most relevant heading.
 7. Validate by reading the created or updated file.
 
 ## AI Conversation Capture
 
-Use the QuickAdd template `Templates/QuickAdd-PKM-AI-Conversation.md` through `scripts/pkm_quickadd.py` when available. Generate a payload JSON file:
+Use the vault-native script `scripts/pkm_ops.py create-ai-conversation`. Generate a payload JSON object:
 
 ```json
 {
@@ -39,10 +39,8 @@ Use the QuickAdd template `Templates/QuickAdd-PKM-AI-Conversation.md` through `s
 Then call the wrapper from the vault root:
 
 ```bash
-python3 scripts/pkm_quickadd.py capture-ai --payload /private/tmp/pkm-capture.json
+python3 scripts/pkm_ops.py create-ai-conversation --payload-json '{"title":"topic","date":"YYYY-MM-DD","context":"...","prompt":"...","raw_answer":"..."}'
 ```
-
-The wrapper uses choice id `b0f3c0d6-89a5-4d86-bb7b-9f8f2f61c101`, runs `quickadd:check` before `quickadd:run`, and returns the created target path. If check reports missing fields, fix the payload rather than allowing interactive prompts.
 
 A captured conversation should include:
 
@@ -54,11 +52,11 @@ A captured conversation should include:
 
 Do not create a Resource note in this skill. Route to `$pkm-distill` after capture if reusable knowledge is needed.
 
-Use the raw template in `references/capture-templates.md` only as the fallback shape when the wrapper and QuickAdd path are unavailable.
+Use the raw template in `references/capture-templates.md` only as the fallback shape when `scripts/pkm_ops.py` is unavailable or direct Markdown drafting is explicitly requested.
 
 ## Daily Capture
 
-Use `scripts/pkm_quickadd.py append-daily` for short logs, ideas, links, and tasks. Generate a payload JSON file:
+Use `scripts/pkm_ops.py append-daily` for short logs, ideas, links, and tasks. Generate a payload JSON object:
 
 ```json
 {
@@ -73,7 +71,7 @@ Use `scripts/pkm_quickadd.py append-daily` for short logs, ideas, links, and tas
 Then call the wrapper from the vault root:
 
 ```bash
-python3 scripts/pkm_quickadd.py append-daily --payload /private/tmp/pkm-daily.json
+python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- Short daily note."}'
 ```
 
 Use these section conventions:
@@ -85,15 +83,4 @@ Use these section conventions:
 
 The wrapper appends under the matching `##` heading, creates a basic Daily note if allowed and missing, skips exact duplicates by default, and returns the target Daily path.
 
-## Script
-
-```bash
-python3 scripts/capture_note.py \
-  --vault /path/to/vault \
-  --kind ai_conversation \
-  --title "topic" \
-  --content-file /path/to/content.md \
-  --unique
-```
-
-The script prints JSON containing the created path.
+`scripts/pkm_quickadd.py` remains available only when the user explicitly requests QuickAdd behavior.

@@ -12,7 +12,7 @@ Act as the PKM workflow router, not as a monolithic writer. Understand the user'
 The vault workflow is:
 
 ```text
-capture -> triage -> distill -> link -> review
+ingress -> capture -> triage -> distill -> link -> ingest -> review
 ```
 
 ## Routing
@@ -27,6 +27,7 @@ Use these leaf skills:
 | Decide whether content belongs in Daily, Project, Area, Resource, Inbox, or Archive | `$pkm-triage` |
 | Extract reusable knowledge, decisions, actions, or verification items | `$pkm-distill` |
 | Add backlinks, Daily links, MOC entries, or related project/resource references | `$pkm-link` |
+| Process files under `00_inbox/External Drops/` into formal vault notes | `$pkm-ingest` |
 | Review inbox, stale projects, unprocessed AI conversations, or weakly linked notes | `$pkm-review` |
 
 After selecting a leaf, read that leaf skill's `SKILL.md` from the sibling skill directory, for example `../pkm-capture/SKILL.md`. Do not execute a leaf workflow from memory.
@@ -40,23 +41,30 @@ Use this as the first complete vertical slice:
 3. `$pkm-link`: Link the resource back to the raw conversation, append the output to the Daily note, and update `MOCs/AI 对话沉淀.md` when appropriate.
 4. Validate by reading the changed files and checking that raw context, distilled knowledge, and action links are all traceable.
 
-## PKM QuickAdd Wrapper
+## PKM Ops Wrapper
 
-For vault `~/Documents/PKM_AI`, prefer the vault-local wrapper:
+For vault-local automation, prefer the vault-native wrapper:
 
 ```bash
-python3 scripts/pkm_quickadd.py capture-ai --payload /private/tmp/pkm-capture.json
-python3 scripts/pkm_quickadd.py create-resource --payload /private/tmp/pkm-resource.json
-python3 scripts/pkm_quickadd.py append-daily --payload /private/tmp/pkm-daily.json
+python3 scripts/pkm_ops.py create-ai-conversation --payload-json '{"title":"topic","date":"YYYY-MM-DD"}'
+python3 scripts/pkm_ops.py create-resource --payload-json '{"title":"resource","source_type":"ai"}'
+python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- note"}'
 ```
 
-Run these commands from the vault root. For QuickAdd actions, the wrapper fixes the vault name, choice ids, `quickadd:check` / `quickadd:run` order, and target-path detection. For `append-daily`, the wrapper edits local Markdown directly. The operator and leaf skills should generate a structured payload file and call the wrapper; do not put large `vars=...` JSON directly in the shell command.
+Run these commands from the vault root. The operator and leaf skills should generate structured payloads and call `scripts/pkm_ops.py`; use `--payload-json` for short payloads and `--payload -` or `--payload <path>` for longer content.
 
-Configured wrapper actions:
+Primary actions:
 
-- `PKM - Capture AI Conversation` (`b0f3c0d6-89a5-4d86-bb7b-9f8f2f61c101`)
-- `PKM - Create Resource` (`f50ab515-88cb-4878-9d0c-449278ef94b2`)
-- `append-daily` (local Markdown append; no QuickAdd choice)
+- `create-ai-conversation`
+- `create-resource`
+- `append-daily`
+- `append-moc-link`
+- `append-project-resource`
+- `add-task`
+- `create-external-drop`
+- `validate-drops`
+- `ingest-drop`
+- `validate-templates`
 
 Payload for `capture-ai`:
 
@@ -103,7 +111,7 @@ Use `Tasks`, `Notes`, `Ideas`, or `Links` for common Daily sections. Entries und
 
 Markdown values may contain lists and multiline text. When preparing JSON by hand, encode newlines as JSON newlines (`\n`), not as literal backslash-n text.
 
-Fallback to raw Obsidian QuickAdd CLI, the existing direct-write script, or direct Markdown workflow only when the wrapper is unavailable, the Obsidian CLI is unavailable, the QuickAdd choices are missing, or the user explicitly asks for direct file edits.
+`scripts/pkm_quickadd.py` is a legacy adapter for explicit QuickAdd/manual Obsidian workflows. Do not use it as the default automation backend.
 
 ## Operating Rules
 

@@ -10,6 +10,12 @@ Validate leaf skills independently first, then validate combined flows.
 - Preserves raw context.
 - Refuses to overwrite existing files unless explicitly allowed.
 
+`pkm-ingress`:
+
+- Creates only an External Drop under `00_inbox/External Drops/`.
+- Does not read `AGENTS.md` or perform PARA triage.
+- Returns an existing drop for duplicate `source_app + external_id`.
+
 `pkm-triage`:
 
 - Produces a PARA destination and rationale.
@@ -27,6 +33,12 @@ Validate leaf skills independently first, then validate combined flows.
 - Adds links without duplicating existing entries.
 - Preserves existing note content.
 - Updates Daily and MOC only when appropriate.
+
+`pkm-ingest`:
+
+- Validates an External Drop before writing formal notes.
+- Runs dry-run before write when processing a drop.
+- Updates drop `status` and `outputs` after writing.
 
 `pkm-review`:
 

@@ -17,15 +17,16 @@ Review the vault and recommend next actions. Default to reporting, not editing.
    - projects
    - resources
    - whole vault
-2. Use `scripts/review_inbox.py` for inbox and AI conversation reviews.
-3. Group findings by recommended action:
+2. Use `scripts/pkm_ops.py validate-drops` for External Drop review.
+3. Use direct Markdown reads/searches for AI conversation inbox, general inbox, projects, and resources when no dedicated script exists.
+4. Group findings by recommended action:
    - distill
    - triage
    - link
    - archive
    - delete candidate
-4. Provide concrete file paths and reasons.
-5. Only edit files after the user approves the proposed changes.
+5. Provide concrete file paths and reasons.
+6. Only edit files after the user approves the proposed changes.
 
 ## Output
 

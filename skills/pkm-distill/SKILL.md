@@ -26,7 +26,7 @@ Convert raw material into reusable knowledge. Preserve traceability to the raw s
    - Actions
    - To Verify
    - Related Project/Area/Raw links
-4. If writing a Resource note in vault `~/Documents/PKM_AI`, prefer the wrapper action `create-resource`.
+4. If writing a Resource note, prefer `scripts/pkm_ops.py create-resource`.
 5. If writing directly, use `03 Resources/` unless triage indicates Project or Area.
 6. Route link updates to `$pkm-link`.
 
@@ -34,7 +34,7 @@ Convert raw material into reusable knowledge. Preserve traceability to the raw s
 
 Use `references/distillation-patterns.md` for output patterns. Prefer dense, reusable notes over long summaries.
 
-## QuickAdd Wrapper
+## PKM Ops Wrapper
 
 Generate Markdown-ready values and write them to a payload JSON file:
 
@@ -56,12 +56,10 @@ Resolve `related_area` and `related_project` from the actual note ownership. Use
 Then call the wrapper from the vault root:
 
 ```bash
-python3 scripts/pkm_quickadd.py create-resource --payload /private/tmp/pkm-resource.json
+python3 scripts/pkm_ops.py create-resource --payload-json '{"title":"durable resource title","source_type":"ai","summary":"- ...","key_points":"- ...","raw_link":"[[00_inbox/AI Conversations/YYYY-MM-DD-title]]"}'
 ```
 
-The wrapper uses choice id `f50ab515-88cb-4878-9d0c-449278ef94b2`, runs `quickadd:check` before `quickadd:run`, and returns the created target path. If check reports missing fields, provide explicit empty strings for intentionally blank optional values. Do not copy the full Resource template into the skill when the wrapper path is available.
-
-Use raw Obsidian QuickAdd CLI or direct Markdown writes only when the wrapper is unavailable, the Obsidian CLI is unavailable, the QuickAdd choice is missing, or the user explicitly asks for direct file edits.
+Use `scripts/pkm_quickadd.py` only as an explicit legacy/manual fallback when the user asks for QuickAdd behavior.
 
 ## External Facts
 

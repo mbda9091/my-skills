@@ -13,8 +13,8 @@ Connect notes so work remains traceable. Add the smallest useful set of links; d
 
 1. Identify the source note, target note, and link purpose.
 2. Read existing files before editing.
-3. Use `scripts/pkm_quickadd.py append-daily` when appending to Daily notes.
-4. Use `scripts/update_links.py` for MOCs or project/resource files when that script is available; otherwise use minimal direct Markdown edits.
+3. Use `scripts/pkm_ops.py append-daily` when appending to Daily notes.
+4. Use `scripts/pkm_ops.py append-moc-link` for MOC links and `scripts/pkm_ops.py append-project-resource` for Project resource links.
 5. Avoid duplicate entries.
 6. Validate by reading the changed section.
 
@@ -28,7 +28,7 @@ Connect notes so work remains traceable. Add the smallest useful set of links; d
 ## Daily Script
 
 ```bash
-python3 scripts/pkm_quickadd.py append-daily --payload /private/tmp/pkm-daily.json
+python3 scripts/pkm_ops.py append-daily --payload-json '{"date":"YYYY-MM-DD","section":"Links","content":"- [[03 Resources/example]]"}'
 ```
 
 Payload:
@@ -45,12 +45,9 @@ Payload:
 
 Use `Links` for references, `Tasks` for dated actions, `Notes` for short logs, and `Ideas` for fleeting ideas. Entries under `Tasks` must follow the vault Tasks syntax.
 
-## Generic Link Script
+## MOC and Project Scripts
 
 ```bash
-python3 scripts/update_links.py \
-  --vault /path/to/vault \
-  --file "MOCs/AI 对话沉淀.md" \
-  --heading "已沉淀资源" \
-  --entry "- [[03 Resources/example]]"
+python3 scripts/pkm_ops.py append-moc-link --payload-json '{"link":"[[03 Resources/example]]"}'
+python3 scripts/pkm_ops.py append-project-resource --payload-json '{"project":"01 Projects/example.md","resource":"[[03 Resources/example]]"}'
 ```

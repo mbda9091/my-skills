@@ -1,0 +1,4 @@
+interface:
+  display_name: "PKM Ingest"
+  short_description: "Process External Drops into PKM notes"
+  default_prompt: "Use $pkm-ingest to process an External Drop into formal PKM notes."
