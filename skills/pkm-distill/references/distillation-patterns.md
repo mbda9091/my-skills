@@ -1,55 +1,13 @@
 # Distillation Patterns
 
-## Resource Note
+Use the current target-vault Resource template. Do not impose a second frontmatter or heading schema from this skill.
 
-```markdown
----
-type: resource
-source_type: ai
-status: active
-created: YYYY-MM-DD HH:mm
-updated: YYYY-MM-DD HH:mm
-source:
-related_area:
-related_project:
-tags:
-  - resource
----
+For `create-resource`, prepare `title`, `source_type`, `summary`, `key_points`, `to_verify`, `raw_link`, `related_area`, and `related_project`. Relations may be empty strings; do not associate new notes with a completed Project by default.
 
-# Title
+- Summary: reusable takeaway in a few lines.
+- Key Points: methods, criteria, and explicit decisions. A decision can be recorded here as `决策：…`; do not assume an unrecognized `decisions` payload field is persisted.
+- To Verify: uncertain or changing external claims, with available sources.
+- Related/Raw: traceable original record and actual Area/Project ownership.
+- Actions: create executable tasks through the vault task wrapper in their owning Project, or Daily for unassigned same-day temporary work. Leave ordinary links in raw/Resource notes. If ownership is unclear, retain ordinary text in Actions/Notes pending triage.
 
-## Summary
-- One durable takeaway.
-
-## Key Points
-- Reusable concept, method, or rule.
-
-## Use Cases
-- Where this knowledge helps.
-
-## Decisions
-- Decision made, if any.
-
-## Actions
-- [ ] Follow-up action, if any.
-
-## To Verify
-- Unstable or uncertain claim.
-
-## Related
-- Area:
-- Project:
-- Raw:
-
-## Notes
-```
-
-## Distillation Tests
-
-A good Resource note:
-
-- can be reused without rereading the raw chat
-- links back to the raw source
-- separates decisions from open questions
-- does not hide unverified facts
-- has a clear title based on the knowledge, not the chat logistics
+A good Resource is useful without rereading the chat, distinguishes decisions from open questions, retains verification items, and has a knowledge-focused title. Validate decisions and action destinations after creation; the current QuickAdd template does not have dedicated Decisions/Actions placeholders.

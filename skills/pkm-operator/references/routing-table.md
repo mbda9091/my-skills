@@ -49,6 +49,10 @@ Use `$pkm-review` when the user asks:
 - find stale projects or weak resources
 - suggest next PKM cleanup actions
 
+## Task boundary
+
+`$pkm-todo` remains manual-only and is not automatically selected. When an authorized capture/distill/link workflow yields actions, use the vault-local task wrapper with project-first ownership. A project task is represented in Daily only by progress text or a link.
+
 ## Combined Requests
 
 If a user asks for a complete flow, run leaf skills in workflow order:

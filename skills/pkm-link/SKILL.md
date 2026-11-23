@@ -22,9 +22,10 @@ Connect notes so work remains traceable. Add the smallest useful set of links; d
 1. Identify the source note, target note, and link purpose.
 2. Read existing files before editing.
 3. Use `scripts/pkm_quickadd.py append-daily` when appending to Daily notes.
-4. Use `scripts/update_links.py` for MOCs or project/resource files when that script is available; otherwise use minimal direct Markdown edits.
-5. Avoid duplicate entries.
-6. Validate by reading the changed section.
+4. Use `append-moc-link` for MOCs and `append-project-resource` for Project Resources. These local wrapper actions work without Obsidian CLI. The optional `scripts/update_links.py` adapter delegates only these two operations to the same wrapper; it never writes Markdown itself.
+5. For Raw/Related fields in AI and Resource notes, make minimal direct edits after reading the current template and note. Link Resource to raw via Raw and raw to Resource via Related; preserve other content.
+6. Avoid duplicates within the target section. A link in Notes does not replace an entry required in Resources.
+7. Validate by reading the changed section. Do not create missing Projects or MOCs as a side effect; report a missing target/section and create it only when the user authorized that creation.
 
 ## Common Links
 
@@ -39,7 +40,7 @@ Connect notes so work remains traceable. Add the smallest useful set of links; d
 (
   [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
   cd -- "$PKM_VALUT_DIR" || exit
-  python3 scripts/pkm_quickadd.py append-daily --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-daily.json
+  python3 scripts/pkm_quickadd.py append-daily --vault-root "$PKM_VALUT_DIR" --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- 今日推进 [[01 Projects/project]]","create_if_missing":"true","allow_duplicate":"false"}'
 )
 ```
 
@@ -55,9 +56,18 @@ Payload:
 }
 ```
 
-Use `Links` for references, `Tasks` for dated actions, `Notes` for short logs, and `Ideas` for fleeting ideas. Entries under `Tasks` must follow the vault Tasks syntax.
+Use `Links` for references, `Notes` for progress logs, and `Ideas` for fleeting ideas. Project tasks remain in `Next Actions`; Daily Tasks is only for unassigned same-day temporary work. Use `add-task` for tasks, `set-task-status` for status, and `update-task` for text/date/ownership edits. Never copy a checkbox to create a backlink. Prefer short `--payload-json` payloads; long content may use a file or stdin.
 
-## Generic Link Script
+## MOC and Project wrapper payloads
+
+Call the vault wrapper from the configured vault directory with `--vault-root "$PKM_VALUT_DIR"`, using the same guard as the Daily example:
+
+- `append-moc-link`: `{"moc":"MOCs/AI 对话沉淀.md","section":"已沉淀资源","link":"[[03 Resources/example]]"}`
+- `append-project-resource`: `{"project":"01 Projects/project.md","resource":"[[03 Resources/example]]"}`
+
+Both targets must exist. `create_section_if_missing` defaults to false; only opt into section creation when appropriate for the requested work. Do not bypass errors with direct file writes.
+
+## Optional Link Adapter
 
 The bundled helper below uses the default Codex installation path. If this skill is installed elsewhere, resolve the helper's absolute path from this `SKILL.md`. Its optional `--vault` must match `PKM_VALUT_DIR` and cannot select a different target.
 

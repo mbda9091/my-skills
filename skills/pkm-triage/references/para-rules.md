@@ -4,9 +4,9 @@ Classify by action distance, not topic.
 
 | Destination | Test |
 | --- | --- |
-| `Daily/` | Action or log belongs to a specific date |
+| `Daily/` | Unassigned same-day temporary action, or dated log/link; project actions stay in Project |
 | `00_inbox/` | Useful but not processed yet |
-| `01 Projects/` | Has outcome, next actions, and a finish condition |
+| `01 Projects/` | Has project ownership, outcome, finish condition, or continuing progress value; task size is irrelevant |
 | `02 Areas/` | Ongoing responsibility or standard with no finish date |
 | `03 Resources/` | Reusable reference or knowledge without immediate action |
 | `04 Archive/` | Inactive, completed, obsolete, or retained for history |

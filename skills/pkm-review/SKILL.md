@@ -24,14 +24,16 @@ Review the vault and recommend next actions. Default to reporting, not editing.
    - resources
    - whole vault
 2. Use this skill's bundled `scripts/review_inbox.py` for inbox and AI conversation reviews; resolve its absolute path from this `SKILL.md`.
-3. Group findings by recommended action:
+3. For projects/resources/whole-vault review, read the requested local Markdown notes separately; the helper only covers ai/inbox. Respect the vault’s exclusions before reading. Use `check-tasks` for requested task-structure checks, without implicitly invoking manual-only `$pkm-todo`.
+4. Treat helper output as initial recommendations, not proof of note quality or completion. It skips known processed statuses and raw notes with Resource associations; verify unresolved facts separately. Group findings by recommended action:
    - distill
    - triage
    - link
+   - verify
    - archive
    - delete candidate
-4. Provide concrete file paths and reasons.
-5. Only edit files after the user approves the proposed changes.
+5. Provide concrete file paths and reasons. Never infer task completion from age or prose alone.
+6. Review is read-only unless the user requested changes. Existing authorization to apply specific changes is sufficient; do not ask again. Deletion, archiving, and renaming require the user’s explicit request under the vault rules.
 
 ## Inbox review helper
 
@@ -55,6 +57,9 @@ The helper requires `PKM_VALUT_DIR`. Its optional `--vault` can only confirm the
 - file: reason
 
 ### Link
+- file: reason
+
+### Verify
 - file: reason
 
 ### Archive

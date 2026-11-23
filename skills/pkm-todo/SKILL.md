@@ -58,7 +58,7 @@ Example of a changed task (illustrative dates):
 
 ## Add a todo
 
-If the user explicitly names an existing project, use it. Otherwise use today's Daily note. Do not scan the whole Vault for a project; ask a short clarification if the named project is ambiguous. “今天” means today's due date and Daily note date.
+If the user names an existing project, or project ownership is already clear from the current session, use that project’s Next Actions even for a small task. Otherwise use today’s Daily only for unassigned same-day temporary work. If the request clearly needs a Project but its destination is unknown, ask a short clarification rather than inventing a Project or silently filing it in Daily. Do not scan the whole vault to infer ownership. “今天” means today’s due date and Daily note date.
 
 Use the wrapper with structured fields. Do not put task checkboxes or date markers in `text`.
 

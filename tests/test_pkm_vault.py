@@ -32,6 +32,15 @@ class VaultSelectionTests(unittest.TestCase):
         self.vault = self.root / "target vault"
         (self.vault / "00_inbox").mkdir(parents=True)
         (self.vault / "00_inbox/Seed.md").write_text("# Seed\n", encoding="utf-8")
+        (self.vault / "scripts").mkdir()
+        (self.vault / "scripts/pkm_quickadd.py").write_text(
+            "import json, os, sys\n"
+            "args = sys.argv[1:]\n"
+            "print(json.dumps({'action': args[0], 'cwd': os.getcwd(), "
+            "'vault_root': args[args.index('--vault-root') + 1], "
+            "'payload': json.loads(args[args.index('--payload-json') + 1])}))\n",
+            encoding="utf-8",
+        )
         self.workspace = self.root / "unrelated workspace"
         (self.workspace / "00_inbox").mkdir(parents=True)
         (self.workspace / "00_inbox/Wrong.md").write_text("# Wrong vault\n", encoding="utf-8")
@@ -86,10 +95,11 @@ class VaultSelectionTests(unittest.TestCase):
 
         link = self.run_script("link")
         self.assertEqual(link.returncode, 0, link.stderr)
-        self.assertIn("- [[Resource]]", (self.vault / "MOCs/Index.md").read_text())
-        duplicate = self.run_script("link")
-        self.assertEqual(duplicate.returncode, 0, duplicate.stderr)
-        self.assertFalse(json.loads(duplicate.stdout)["changed"])
+        delegated = json.loads(link.stdout)
+        self.assertEqual(delegated["action"], "append-moc-link")
+        self.assertEqual(delegated["vault_root"], str(self.vault))
+        self.assertEqual(delegated["cwd"], str(self.vault))
+        self.assertEqual(delegated["payload"], {"file": "MOCs/Index.md", "heading": "Links", "entry": "- [[Resource]]"})
 
         review = self.run_script("review")
         self.assertEqual(review.returncode, 0, review.stderr)

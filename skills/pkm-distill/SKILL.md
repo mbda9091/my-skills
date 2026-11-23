@@ -36,7 +36,9 @@ Convert raw material into reusable knowledge. Preserve traceability to the raw s
    - Related Project/Area/Raw links
 4. If writing a Resource note in the vault selected by `PKM_VALUT_DIR`, prefer the wrapper action `create-resource`.
 5. If writing directly, use `03 Resources/` unless triage indicates Project or Area.
-6. Route link updates to `$pkm-link`.
+6. Preserve decisions in `key_points` (for example, `决策：…`) or the Resource Notes section; the current QuickAdd payload has no separate decisions/actions fields, so do not assume extra keys are persisted.
+7. Route actionable work to the owning Project `Next Actions` using `add-task`. Only unassigned same-day temporary work belongs in Daily Tasks. Keep unclear actions as ordinary text in Actions/Notes pending triage; do not copy task checkboxes into raw and Resource notes. Include ordinary links back to the owning Project/task.
+8. Route link updates to `$pkm-link`, including the raw record’s Resource association. Validate that decisions, action ownership, and verification items survived creation.
 
 ## Resource Shape
 
@@ -44,7 +46,7 @@ Use `references/distillation-patterns.md` for output patterns. Prefer dense, reu
 
 ## QuickAdd Wrapper
 
-Generate Markdown-ready values and write them to a payload JSON file:
+Generate Markdown-ready values. Prefer `--payload-json` for short payloads; use a UTF-8 JSON file or stdin for long content:
 
 ```json
 {
@@ -67,13 +69,13 @@ Then call the wrapper in the configured target vault:
 (
   [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
   cd -- "$PKM_VALUT_DIR" || exit
-  python3 scripts/pkm_quickadd.py create-resource --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-resource.json
+  python3 scripts/pkm_quickadd.py create-resource --vault-root "$PKM_VALUT_DIR" --payload-json '{"title":"resource","source_type":"ai","summary":"Durable takeaway","key_points":"Reusable method; 决策：保留明确判断","to_verify":"","raw_link":"[[00_inbox/AI Conversations/YYYY-MM-DD-topic]]","related_area":"","related_project":""}'
 )
 ```
 
 The wrapper uses choice id `f50ab515-88cb-4878-9d0c-449278ef94b2`, runs `quickadd:check` before `quickadd:run`, and returns the created target path. If check reports missing fields, provide explicit empty strings for intentionally blank optional values. Do not copy the full Resource template into the skill when the wrapper path is available.
 
-Use raw Obsidian QuickAdd CLI or direct Markdown writes only when the wrapper is unavailable, the Obsidian CLI is unavailable, the QuickAdd choice is missing, or the user explicitly asks for direct file edits.
+For Resource creation only, render the target vault’s current Resource/QuickAdd template locally if the wrapper, Obsidian CLI, or QuickAdd choice is unavailable, or the user requests direct creation. Preserve source_type, related_project, related_area, and Raw. This does not permit hand-editing tasks or bypassing the local wrapper for Daily, MOC, or Project appends.
 
 ## External Facts
 

@@ -27,7 +27,7 @@ capture -> triage -> distill -> link -> review
 
 Read `references/routing-table.md` before choosing a leaf skill unless the user already named one.
 
-Use these leaf skills:
+Use these leaf skills. The separate `$pkm-todo` is manual-only: do not invoke it implicitly. Workflow actions may call the vault task wrapper directly when authorized by the user and the vault rules.
 
 | Goal | Leaf skill |
 | --- | --- |
@@ -45,8 +45,9 @@ Use this as the first complete vertical slice:
 
 1. `$pkm-capture`: Save the raw conversation into `00_inbox/AI Conversations/YYYY-MM-DD-title.md`.
 2. `$pkm-distill`: Create or propose a `03 Resources/` note containing durable knowledge, decisions, actions, and items to verify.
-3. `$pkm-link`: Link the resource back to the raw conversation, append the output to the Daily note, and update `MOCs/AI 对话沉淀.md` when appropriate.
-4. Validate by reading the changed files and checking that raw context, distilled knowledge, and action links are all traceable.
+3. Route explicit actions to the owning Project via `add-task`; use Daily Tasks only for unassigned same-day temporary work. Unresolved ownership stays as ordinary text under Actions until triaged.
+4. `$pkm-link`: Link both raw and resource records, log progress in Daily Notes/Links, and update `MOCs/AI 对话沉淀.md` when appropriate.
+5. Validate by reading the changed files and checking that raw context, distilled knowledge, and action links are all traceable.
 
 ## PKM QuickAdd Wrapper
 
@@ -56,19 +57,29 @@ For the vault selected by `PKM_VALUT_DIR`, prefer the vault-local QuickAdd wrapp
 (
   [[ "${PKM_VALUT_DIR:?Set PKM_VALUT_DIR}" = /* && -d "$PKM_VALUT_DIR" ]] || { echo "PKM_VALUT_DIR must be an existing absolute directory" >&2; exit 1; }
   cd -- "$PKM_VALUT_DIR" || exit
-  python3 scripts/pkm_quickadd.py capture-ai --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-capture.json || exit
-  python3 scripts/pkm_quickadd.py create-resource --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-resource.json || exit
-  python3 scripts/pkm_quickadd.py append-daily --vault-root "$PKM_VALUT_DIR" --payload /tmp/pkm-daily.json
+  python3 scripts/pkm_quickadd.py capture-ai --vault-root "$PKM_VALUT_DIR" --payload-json '{"title":"topic","date":"YYYY-MM-DD","context":"Conversation context","prompt":"User request","raw_answer":"Raw answer"}' || exit
+  python3 scripts/pkm_quickadd.py create-resource --vault-root "$PKM_VALUT_DIR" --payload-json '{"title":"resource","source_type":"ai","summary":"Durable takeaway","key_points":"Reusable method; 决策：保留明确判断","to_verify":"","raw_link":"[[00_inbox/AI Conversations/YYYY-MM-DD-topic]]","related_area":"","related_project":""}' || exit
+  python3 scripts/pkm_quickadd.py append-daily --vault-root "$PKM_VALUT_DIR" --payload-json '{"date":"YYYY-MM-DD","section":"Notes","content":"- 今日推进 [[01 Projects/project]]","create_if_missing":"true","allow_duplicate":"false"}'
 )
 ```
 
-Run these commands in `$PKM_VALUT_DIR`. For QuickAdd actions, pass the target root explicitly and keep the configured choice ids, `quickadd:check` / `quickadd:run` order, and target-path detection. For `append-daily`, the wrapper edits local Markdown directly. The operator and leaf skills should generate a structured payload file and call the wrapper; do not put large `vars=...` JSON directly in the shell command.
+Run these commands in `$PKM_VALUT_DIR`. For QuickAdd actions, pass the target root explicitly and keep the configured choice ids, `quickadd:check` / `quickadd:run` order, and target-path detection. For `append-daily`, the wrapper edits local Markdown directly. The operator and leaf skills should generate structured payloads and call the wrapper; do not put large `vars=...` JSON directly in the shell command.
 
 Configured wrapper actions:
 
-- `PKM - Capture AI Conversation` (`b0f3c0d6-89a5-4d86-bb7b-9f8f2f61c101`)
-- `PKM - Create Resource` (`f50ab515-88cb-4878-9d0c-449278ef94b2`)
-- `append-daily` (local Markdown append; no QuickAdd choice)
+| Action | Use |
+| --- | --- |
+| `capture-ai` | QuickAdd capture (`b0f3c0d6-89a5-4d86-bb7b-9f8f2f61c101`) |
+| `create-resource` | QuickAdd resource (`f50ab515-88cb-4878-9d0c-449278ef94b2`) |
+| `append-daily` | Local log, idea, or link append |
+| `append-moc-link` | Local MOC section append |
+| `append-project-resource` | Local Project resource append |
+| `add-task` | New structured Daily or Project task |
+| `set-task-status` | Complete, cancel, or reopen an existing task |
+| `update-task` | Edit, move, or backfill a task with reason/history |
+| `check-tasks` | Read-only structural task audit |
+
+Prefer `--payload-json` for short payloads; use `--payload -` or a UTF-8 file for long content. MOC, Project, and Daily writes use the wrapper, including when Obsidian CLI is unavailable: these local actions do not require Obsidian. See `references/workflow.md` for task ownership and status/content boundaries.
 
 Payload for `capture-ai`:
 
@@ -111,11 +122,11 @@ Payload for `append-daily`:
 }
 ```
 
-Use `Tasks`, `Notes`, `Ideas`, or `Links` for common Daily sections. Entries under `Tasks` must follow the vault Tasks syntax, for example `- [ ] Task content 📅 YYYY-MM-DD`.
+Daily records progress and links under `Notes` or `Links`. Only unassigned same-day temporary tasks belong under `Tasks`; project tasks belong in the project `Next Actions`. Use `add-task` with structured text and optional due date; the wrapper generates `➕ YYYY-MM-DD` in Asia/Shanghai. The compatibility `append-daily` Tasks entry also adds creation dates, but must not be used for status or content edits.
 
 Markdown values may contain lists and multiline text. When preparing JSON by hand, encode newlines as JSON newlines (`\n`), not as literal backslash-n text.
 
-Fallback to raw Obsidian QuickAdd CLI, the existing direct-write script, or direct Markdown workflow only when the wrapper is unavailable, the Obsidian CLI is unavailable, the QuickAdd choices are missing, or the user explicitly asks for direct file edits.
+For capture/resource creation only, use the current vault templates and local Markdown fallback when the wrapper, Obsidian CLI, or QuickAdd choice is unavailable, or the user explicitly requests direct creation. Do not extend this exception to task operations or MOC/Project/Daily appends: use their local wrapper actions. If the required local action is unavailable, report the error rather than hand-editing around task/date/history rules.
 
 ## Operating Rules
 

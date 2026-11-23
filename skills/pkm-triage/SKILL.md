@@ -17,10 +17,10 @@ Decide where a note or idea belongs. Produce a destination, rationale, and next 
 
 ## Decision Tree
 
-1. Does it require action today or this week?
-   - Yes: `Daily/` if small, `01 Projects/` if it has an outcome and multiple steps.
-2. Does it have a clear outcome, deadline, or finish condition?
-   - Yes: `01 Projects/`.
+1. Does an action belong to a known project, or have an outcome, finish condition, or ongoing progress value?
+   - Yes: `01 Projects/<project>.md`, under `## Next Actions`, even for a single small step.
+2. Is it unassigned same-day temporary work or a dated log?
+   - Yes: `Daily/` Tasks for temporary actions, Notes/Links for progress context. A date alone does not override project ownership.
 3. Is it an ongoing responsibility, standard, habit, or maintained domain?
    - Yes: `02 Areas/`.
 4. Is it reusable knowledge, a method, reference, template, or judgment framework?
@@ -41,4 +41,4 @@ Decide where a note or idea belongs. Produce a destination, rationale, and next 
 - Links to update:
 ```
 
-Use `references/para-rules.md` for edge cases.
+Use `references/para-rules.md` for edge cases. Classification alone does not authorize moves, deletion, archiving, or task status changes. If asked to apply task ownership changes, use `update-task` with the user’s reason, preserving the whole task block. Never duplicate a Project checkbox in Daily. Unresolved ownership remains ordinary text under Actions; ask only when a write needs that decision.
